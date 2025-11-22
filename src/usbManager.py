@@ -12,7 +12,7 @@ import pyudev
 import subprocess as sp
 
 class usbManager:
-  imageFormats = ['gif', 'jpeg', 'png']
+  imageFormats = ['gif', 'jpeg', 'png', 'jpg']
   videoFormats = ['mp4', 'avi', 'wmv']
   audioFormats = ['wav', 'flac', 'mp3']
   
@@ -22,6 +22,7 @@ class usbManager:
     self.monitor.filter_by(subsystem="block", device_type="partition")
     self.foundMedia = {"fotos" : [], "videos": [], "audio": []}
     self.mediaLock = False
+    self.isMediaMounted = False
   
   def autoMount(self, path):
     args = ["udisksctl", "mount", "-b", path]
@@ -61,16 +62,18 @@ class usbManager:
         self.getMediaFromDir(mp)
         mediaLock = False
         print(self.foundMedia)
+        self.isMediaMounted = True 
       elif action == "remove":
         mediaLock = True
         for v in self.foundMedia.values():
           v.clear()
         mediaLock = False
         print(self.foundMedia)
+        self.isMediaMounted = False 
         
-#Para propositos de testing:
-usb = usbManager()
-usb.monitorDevices()
+# #Para propositos de testing:
+# usb = usbManager()
+# usb.monitorDevices()
           
 
 
