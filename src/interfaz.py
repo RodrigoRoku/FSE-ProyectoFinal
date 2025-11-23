@@ -1,8 +1,6 @@
 import tkinter as tk
 import subprocess
 
-# ===== Funciones de acción =====
-import subprocess
 
 def cerrar_chromium():
     try:
@@ -24,8 +22,7 @@ def abrir_netflix():
         subprocess.Popen([
             "chromium",
             "--start-fullscreen",
-            "--no-sandbox",
-            "--new-window",
+            "--kiosk",
             "https://www.netflix.com/mx"
         ])
     except Exception as e:
@@ -38,8 +35,7 @@ def abrir_disney():
         subprocess.Popen([
             "chromium",
             "--start-fullscreen",
-            "--no-sandbox",
-            "--new-window",
+            "--kiosk",
             "https://www.disneyplus.com/es-mx"
         ])
     except Exception as e:
@@ -51,8 +47,7 @@ def abrir_spoti():
         subprocess.Popen([
             "chromium",
             "--start-fullscreen",
-            "--no-sandbox",
-            "--new-window",
+            "--kiosk",
             "https://open.spotify.com/intl-es"
         ])
     except Exception as e:
@@ -64,8 +59,7 @@ def abrir_youtube():
         subprocess.Popen([
             "chromium",
             "--start-fullscreen",
-            "--no-sandbox",
-            "--new-window",
+            "--kiosk",
             "https://music.youtube.com/"
         ])
     except Exception as e:
@@ -84,6 +78,9 @@ def salir_app(event=None):
 # ===== Configuración de la ventana =====
 root = tk.Tk()
 root.title("Centro Multimedia")
+screenwidth = root.winfo_screenwidth()
+screenheight = root.winfo_screenheight()
+root.geometry(f"{screenwidth}x{screenheight}+0+0")
 root.attributes("-fullscreen", True)
 root.update_idletasks()
 root.configure(bg="black")
@@ -116,8 +113,8 @@ for text, command in menu_items:
     buttons.append(btn)
  
     # Vincular clic derecho y clic izquierdo manualmente
-    btn.bind("<Button-3>", lambda e, c=command: c())
-    btn.bind("<Button-1>", lambda e, c=command: c())
+    # btn.bind("<Button-3>", lambda e, c=command: c())
+    # btn.bind("<Button-1>", lambda e, c=command: c())
 
 # ===== Manejo de navegación con teclado =====
 current_index = 0
