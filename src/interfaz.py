@@ -23,7 +23,7 @@ def conectar_bluetooth():
     )
     lbl_estado.pack(pady=10)
 
-    # Iniciar bluetoothctl
+    # Ejecuta bluetoothctl
     process = subprocess.Popen(
         ["bluetoothctl"],
         stdin=subprocess.PIPE,
@@ -33,9 +33,9 @@ def conectar_bluetooth():
         bufsize=1
     )
 
-    # Habilitar bluetooth e iniciar escaneo
+    # Inicialización del controlador
     init_cmds = """power on
-agent NoInputNoOutput
+agent KeyboardOnly
 default-agent
 pairable on
 discoverable on
@@ -46,183 +46,66 @@ scan on
 
     lbl_info.config(text="Bluetooth activado.\nBusca 'Raspberry Pi' desde tu control o celular.")
 
-    # Guardar MAC detectado
     dispositivo_mac = {"mac": None}
 
-    # Hilo que escucha bluetoothctl
     def escuchar_bt():
         for line in process.stdout:
             line = line.strip()
             print("[BT]", line)
 
-            # ======================================================
-            # DETECTAR NUEVO DISPOSITIVO
-            # ======================================================
+            # Detectar nuevo dispositivo
             if "Device" in line and ("NEW" in line or "Connected" in line):
                 m = re.search(r"Device ([0-9A-F:]{17})", line)
-                if m:
+                if m and dispositivo_mac["mac"] != m.group(1):
                     dispositivo_mac["mac"] = m.group(1)
                     root.after(0, lambda:
                         lbl_estado.config(text=f"Detectado: {m.group(1)}\nIntentando emparejar...")
                     )
-
                     process.stdin.write(f"pair {m.group(1)}\n")
                     process.stdin.flush()
 
-            # ======================================================
-            # SOLICITUD DE CONFIRMACIÓN DE PASSKEY
-            # ======================================================
+            # Confirmar passkey automáticamente
             if "Confirm passkey" in line or "Request confirmation" in line:
-                root.after(0, lambda:
-                    lbl_estado.config(text="Solicitud de confirmación detectada.\nAceptando...")
-                )
                 process.stdin.write("yes\n")
                 process.stdin.flush()
-
-            # ======================================================
-            # SOLICITUD DE PIN
-            # ======================================================
-            if "Request PIN code" in line:
                 root.after(0, lambda:
-                    lbl_estado.config(text="El dispositivo requiere PIN.\nEnviando 0000...")
+                    lbl_estado.config(text="✔ Passkey confirmado automáticamente.")
                 )
+
+            # Solicitud de PIN
+            if "Request PIN code" in line:
                 process.stdin.write("0000\n")
                 process.stdin.flush()
                 root.after(0, lambda:
-                    lbl_estado.config(text="✔ PIN enviado.\nEspera confirmación.")
+                    lbl_estado.config(text="✔ PIN enviado automáticamente.")
                 )
 
-            # ======================================================
-            # EMPAREJADO CORRECTAMENTE
-            # ======================================================
+            # Autorizar servicios (HID)
+            if "Authorize service" in line:
+                process.stdin.write("yes\n")
+                process.stdin.flush()
+                root.after(0, lambda:
+                    lbl_estado.config(text="✔ Servicio autorizado automáticamente.")
+                )
+
+            # Emparejamiento correcto
             if "Paired: yes" in line:
                 root.after(0, lambda:
-                    lbl_estado.config(text="✔ Emparejado.\nIntentando conectar...")
+                    lbl_estado.config(text="✔ Emparejado correctamente.\nIntentando conectar...")
                 )
                 if dispositivo_mac["mac"]:
                     process.stdin.write(f"connect {dispositivo_mac['mac']}\n")
                     process.stdin.flush()
 
-            # ======================================================
-            # CONEXIÓN EXITOSA
-            # ======================================================
+            # Conexión exitosa
             if "Connection successful" in line or "Connected: yes" in line:
                 root.after(0, lambda:
-                    lbl_estado.config(text="✔ Conectado correctamente.\nEl dispositivo ya está listo.")
+                    lbl_estado.config(text="✔ Conectado correctamente.\nDispositivo listo como control remoto.")
                 )
                 return
 
     threading.Thread(target=escuchar_bt, daemon=True).start()
-def conectar_bluetooth():
-    popup = tk.Toplevel(root)
-    popup.title("Bluetooth")
-    popup.geometry("600x300")
-    popup.configure(bg="black")
 
-    lbl_info = tk.Label(
-        popup,
-        text="Activando Bluetooth...\nEspera un momento.",
-        fg="white", bg="black", font=("Arial", 18)
-    )
-    lbl_info.pack(pady=20)
-
-    lbl_estado = tk.Label(
-        popup,
-        text="Preparando emparejamiento...",
-        fg="cyan", bg="black", font=("Arial", 16)
-    )
-    lbl_estado.pack(pady=10)
-
-    # Iniciar bluetoothctl
-    process = subprocess.Popen(
-        ["bluetoothctl"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        bufsize=1
-    )
-
-    # Habilitar bluetooth e iniciar escaneo
-    init_cmds = """power on
-agent NoInputNoOutput
-default-agent
-pairable on
-discoverable on
-scan on
-"""
-    process.stdin.write(init_cmds)
-    process.stdin.flush()
-
-    lbl_info.config(text="Bluetooth activado.\nBusca 'Raspberry Pi' desde tu control o celular.")
-
-    # Guardar MAC detectado
-    dispositivo_mac = {"mac": None}
-
-    # Hilo que escucha bluetoothctl
-    def escuchar_bt():
-        for line in process.stdout:
-            line = line.strip()
-            print("[BT]", line)
-
-            # ======================================================
-            # DETECTAR NUEVO DISPOSITIVO
-            # ======================================================
-            if "Device" in line and ("NEW" in line or "Connected" in line):
-                m = re.search(r"Device ([0-9A-F:]{17})", line)
-                if m:
-                    dispositivo_mac["mac"] = m.group(1)
-                    root.after(0, lambda:
-                        lbl_estado.config(text=f"Detectado: {m.group(1)}\nIntentando emparejar...")
-                    )
-
-                    process.stdin.write(f"pair {m.group(1)}\n")
-                    process.stdin.flush()
-
-            # ======================================================
-            # SOLICITUD DE CONFIRMACIÓN DE PASSKEY
-            # ======================================================
-            if "Confirm passkey" in line or "Request confirmation" in line:
-                root.after(0, lambda:
-                    lbl_estado.config(text="Solicitud de confirmación detectada.\nAceptando...")
-                )
-                process.stdin.write("yes\n")
-                process.stdin.flush()
-
-            # ======================================================
-            # SOLICITUD DE PIN
-            # ======================================================
-            if "Request PIN code" in line:
-                root.after(0, lambda:
-                    lbl_estado.config(text="El dispositivo requiere PIN.\nEnviando 0000...")
-                )
-                process.stdin.write("0000\n")
-                process.stdin.flush()
-                root.after(0, lambda:
-                    lbl_estado.config(text="✔ PIN enviado.\nEspera confirmación.")
-                )
-
-            # ======================================================
-            # EMPAREJADO CORRECTAMENTE
-            # ======================================================
-            if "Paired: yes" in line:
-                root.after(0, lambda:
-                    lbl_estado.config(text="✔ Emparejado.\nIntentando conectar...")
-                )
-                if dispositivo_mac["mac"]:
-                    process.stdin.write(f"connect {dispositivo_mac['mac']}\n")
-                    process.stdin.flush()
-
-            # ======================================================
-            # CONEXIÓN EXITOSA
-            # ======================================================
-            if "Connection successful" in line or "Connected: yes" in line:
-                root.after(0, lambda:
-                    lbl_estado.config(text="✔ Conectado correctamente.\nEl dispositivo ya está listo.")
-                )
-                return
-
-    threading.Thread(target=escuchar_bt, daemon=True).start()
 
 
 def cerrar_chromium():
