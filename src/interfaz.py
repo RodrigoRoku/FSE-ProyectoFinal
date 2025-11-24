@@ -2,98 +2,6 @@ import tkinter as tk
 import subprocess
 import threading
 import  re
-def conectar_bluetooth():
-    popup = tk.Toplevel(root)
-    popup.title("Bluetooth")
-    popup.geometry("600x300")
-    popup.configure(bg="black")
-
-    lbl_info = tk.Label(
-        popup,
-        text="Activando Bluetooth...\nBusca el dispositivo 'pi' en tu teléfono o control.",
-        fg="white", bg="black", font=("Arial", 18)
-    )
-    lbl_info.pack(pady=20)
-
-    lbl_estado = tk.Label(
-        popup,
-        text="Preparando emparejamiento...",
-        fg="cyan", bg="black", font=("Arial", 16)
-    )
-    lbl_estado.pack(pady=10)
-
-    # Ejecuta bluetoothctl
-    process = subprocess.Popen(
-        ["bluetoothctl"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        bufsize=1
-    )
-
-    # Inicialización
-    init_cmds = """agent on
-default-agent
-power on
-discoverable on
-pairable on
-scan on
-"""
-    process.stdin.write(init_cmds)
-    process.stdin.flush()
-
-    dispositivo_mac = {"mac": None}
-
-    def escuchar_bt():
-        for line in process.stdout:
-            line = line.strip()
-            print("[BT]", line)
-
-            # Detectar dispositivo nuevo
-            if "Device" in line and ("NEW" in line or "Connected" in line):
-                m = re.search(r"Device ([0-9A-F:]{17})", line)
-                if m and dispositivo_mac["mac"] != m.group(1):
-                    dispositivo_mac["mac"] = m.group(1)
-                    root.after(0, lambda:
-                        lbl_estado.config(text=f"Detectado: {m.group(1)}\nIntentando emparejar...")
-                    )
-                    process.stdin.write(f"pair {m.group(1)}\n")
-                    process.stdin.flush()
-
-            # Confirmación automática de passkey
-            if "Confirm passkey" in line or "Request confirmation" in line:
-                process.stdin.write("yes\n")
-                process.stdin.flush()
-                root.after(0, lambda:
-                    lbl_estado.config(text="✔ Passkey confirmado automáticamente.")
-                )
-
-            # Autorizar servicios automáticamente
-            if "Authorize service" in line:
-                process.stdin.write("yes\n")
-                process.stdin.flush()
-                root.after(0, lambda:
-                    lbl_estado.config(text="✔ Servicio autorizado automáticamente.")
-                )
-
-            # Emparejado correctamente
-            if "Paired: yes" in line:
-                root.after(0, lambda:
-                    lbl_estado.config(text="✔ Emparejado correctamente.\nIntentando conectar...")
-                )
-                if dispositivo_mac["mac"]:
-                    process.stdin.write(f"connect {dispositivo_mac['mac']}\n")
-                    process.stdin.flush()
-
-            # Conexión exitosa
-            if "Connection successful" in line or "Connected: yes" in line:
-                root.after(0, lambda:
-                    lbl_estado.config(text="✔ Conectado correctamente.\nDispositivo listo como control remoto.")
-                )
-                return
-
-    threading.Thread(target=escuchar_bt, daemon=True).start()
 
 
 
@@ -210,7 +118,7 @@ menu_items = [
     ("Spotify", abrir_spoti),
     ("Youtube Music", abrir_youtube),
     ("Medios Extraíbles", abrir_vlc),
-   ("Conecta su dispositivo", conectar_bluetooth),
+    #("Conecta su dispositivo", conectar_bluetooth),
     ("Salir", salir_app)
 ]
 
