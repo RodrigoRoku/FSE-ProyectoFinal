@@ -2,7 +2,6 @@ import tkinter as tk
 import subprocess
 import threading
 import  re
-
 def conectar_bluetooth():
     popup = tk.Toplevel(root)
     popup.title("Bluetooth")
@@ -11,7 +10,7 @@ def conectar_bluetooth():
 
     lbl_info = tk.Label(
         popup,
-        text="Activando Bluetooth...\nEspera un momento.",
+        text="Activando Bluetooth...\nBusca el dispositivo 'pi' en tu teléfono o control.",
         fg="white", bg="black", font=("Arial", 18)
     )
     lbl_info.pack(pady=20)
@@ -33,18 +32,16 @@ def conectar_bluetooth():
         bufsize=1
     )
 
-    # Inicialización del controlador
-    init_cmds = """power on
-agent KeyboardOnly
+    # Inicialización
+    init_cmds = """agent on
 default-agent
-pairable on
+power on
 discoverable on
+pairable on
 scan on
 """
     process.stdin.write(init_cmds)
     process.stdin.flush()
-
-    lbl_info.config(text="Bluetooth activado.\nBusca 'Raspberry Pi' desde tu control o celular.")
 
     dispositivo_mac = {"mac": None}
 
@@ -53,7 +50,7 @@ scan on
             line = line.strip()
             print("[BT]", line)
 
-            # Detectar nuevo dispositivo
+            # Detectar dispositivo nuevo
             if "Device" in line and ("NEW" in line or "Connected" in line):
                 m = re.search(r"Device ([0-9A-F:]{17})", line)
                 if m and dispositivo_mac["mac"] != m.group(1):
@@ -64,7 +61,7 @@ scan on
                     process.stdin.write(f"pair {m.group(1)}\n")
                     process.stdin.flush()
 
-            # Confirmar passkey automáticamente
+            # Confirmación automática de passkey
             if "Confirm passkey" in line or "Request confirmation" in line:
                 process.stdin.write("yes\n")
                 process.stdin.flush()
@@ -72,15 +69,7 @@ scan on
                     lbl_estado.config(text="✔ Passkey confirmado automáticamente.")
                 )
 
-            # Solicitud de PIN
-            if "Request PIN code" in line:
-                process.stdin.write("0000\n")
-                process.stdin.flush()
-                root.after(0, lambda:
-                    lbl_estado.config(text="✔ PIN enviado automáticamente.")
-                )
-
-            # Autorizar servicios (HID)
+            # Autorizar servicios automáticamente
             if "Authorize service" in line:
                 process.stdin.write("yes\n")
                 process.stdin.flush()
@@ -88,7 +77,7 @@ scan on
                     lbl_estado.config(text="✔ Servicio autorizado automáticamente.")
                 )
 
-            # Emparejamiento correcto
+            # Emparejado correctamente
             if "Paired: yes" in line:
                 root.after(0, lambda:
                     lbl_estado.config(text="✔ Emparejado correctamente.\nIntentando conectar...")
