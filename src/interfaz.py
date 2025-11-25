@@ -26,6 +26,13 @@ class graphicalInterface:
         "youtube": "https://music.youtube.com/" 
     }
     
+    logos = {
+        "Netflix": "/home/pi2/logos/netflix.png", 
+        "Disney+" : "/home/pi2/logos/disney.png",
+        "Spotify": "/home/pi2/logos/spotify.png",
+        "Youtube": "/home/pi2/logos/youtube.png"
+    }
+    
     mediaList = []
 
     def __init__(self):
@@ -40,28 +47,84 @@ class graphicalInterface:
         self.root.configure(bg="black")
         self.root.config(cursor="arrow")
         self.root.focus_force()
-        # ===== Título visible en pantalla =====
-        self.title_label = tk.Label(self.root, text="FSE-2026-1-Centro Multimeda", font=("Arial", 36, "bold"),
-                            fg="white", bg="black")
-        self.title_label.pack(pady=40)
+        
+        self.buttons = []
+        
+        #Frame para el titulo 
+        self.title_frame = tk.Frame(self.root, bg="gray20")
+        self.title_frame.pack(fill="x", pady=0)
+
+        self.title_label = tk.Label(self.title_frame, text="FSE-2026-1-Centro Multimeda", font=("Arial", 36, "bold"),
+                            fg="white", bg="gray20")
+        self.title_label.grid(row=0, column=0, pady=40, padx=50)
+        
+        self.label = tk.Label(self.title_frame, text="Usa las flechas ↑ ↓ y Enter para seleccionar \n O \n Bien usa tu mouse para navegar", 
+                        font=("Arial", 16), fg="white", bg="gray20")
+        self.label.grid(row=0, column=1,padx=50,  pady=20)
+        
+        btn = tk.Button(self.title_frame, text="Salir", font=("Arial", 30), width=15, height=2,
+                            bg="gray20", fg="white", activebackground="blue",
+                            command=lambda c=self.salir_app: c())
+        btn.grid(row=0, column=2, padx=50,pady=5)
+        self.buttons.append(btn)
+        
+        #Frame para espaciar elementos
+        self.spacer1 = tk.Frame(self.root, height=150, bg="black")
+        self.spacer1.pack()
+        
+        self.streaming_label = tk.Label(self.spacer1, text="Streaming", 
+                        font=("Arial", 16), fg="white", bg="black")
+        self.streaming_label.pack(pady=20)
+        
+        #Frame para botones de apps de streamin
+        
+        self.streamingApp_frame = tk.Frame(self.root, bg="black")
+        self.streamingApp_frame.pack(pady=10)
+        
         # ===== Lista de botones del menú =====
-        self.menu_items = [
+        self.appButtonDictionary = [
             ("Netflix", lambda: self.abrir_app("netflix")),
             ("Disney+", lambda: self.abrir_app("disney")),
             ("Spotify", lambda: self.abrir_app("spotify")),
-            ("Youtube Music", lambda: self.abrir_app("youtube")),
-            ("Medios Extraíbles", self.abrir_vlc),
-            ("Salir", self.salir_app)
+            ("Youtube", lambda: self.abrir_app("youtube")),
         ]
         
-        self.buttons = []
+        self.extraButtons = {
+            ("Medios Extraíbles", self.abrir_vlc),
+        }
+        
+        self.images = []
         # ===== Crear botones y vincular clic derecho =====
-        for text, command in self.menu_items:
-            btn = tk.Button(self.root, text=text, font=("Arial", 24), width=25, height=2,
+        i=0
+        for text, command in self.appButtonDictionary:
+            img = tk.PhotoImage(file=self.logos[text])
+            
+            self.images.append(img)
+            btn = tk.Button(self.streamingApp_frame, image=img, bg="black", bd=0, relief="flat", highlightthickness=0,
+                            command=lambda c=command: c())
+            btn.grid(row=0,column=i, pady=5, padx = 40)
+            self.buttons.append(btn)
+            i+=1
+        
+        #Frame para espaciar elementos
+        self.spacer2 = tk.Frame(self.root, height=150, bg="black")
+        self.spacer2.pack()
+        
+        self.streaming_label = tk.Label(self.spacer2, text="Medios Externos", 
+                        font=("Arial", 16), fg="white", bg="black")
+        self.streaming_label.pack(pady=20)
+        
+        #Frame para los archivos multimedia de medios extraibles
+        
+        self.media_frame = tk.Frame(self.root, bg="black")
+        self.media_frame.pack(pady=10)
+        for text, command in self.extraButtons:
+            btn = tk.Button(self.media_frame, text=text, font=("Arial", 24), width=25, height=2,
                             bg="gray20", fg="white", activebackground="blue",
                             command=lambda c=command: c())
-            btn.pack(pady=10)
+            btn.grid(row=1, column=i, pady=5)
             self.buttons.append(btn)
+            i += 1
 
         # ===== Manejo de navegación con teclado =====
         self.current_index = 0
@@ -71,10 +134,7 @@ class graphicalInterface:
         self.root.bind("<Down>", self.mover_foco)
         self.root.bind("<Return>", self.mover_foco)
         
-        # ===== Mensaje de instrucciones =====
-        self.label = tk.Label(self.root, text="Usa las flechas ↑ ↓ y Enter para seleccionar \n O \n Bien usa tu mouse para navegar", 
-                        font=("Arial", 16), fg="white", bg="black")
-        self.label.pack(side="bottom", pady=20)
+        
 
         
         
@@ -138,8 +198,8 @@ def checkEvent():
         
 
 i = graphicalInterface()
-eventThread = threading.Thread(target=checkEvent)
+# eventThread = threading.Thread(target=checkEvent)
 
-eventThread.start()
+# eventThread.start()
 
 i.inicia_interfaz()
