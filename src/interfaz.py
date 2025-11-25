@@ -3,20 +3,6 @@ import subprocess
 from time import sleep
 import threading
 
-
-# def cerrar_chromium():
-#     try:
-#         # Encuentra la ventana de Chromium
-#         window_id = subprocess.check_output(
-#             ["xdotool", "search", "--onlyvisible", "--class", "chromium"]
-#         ).splitlines()
-        
-#         # Envía Ctrl+Shift+W a cada ventana encontrada
-#         for win in window_id:
-#             subprocess.run(["xdotool", "windowactivate", win, "key", "ctrl+shift+w"])
-#     except Exception as e:
-#         print("Error cerrando Chromium:", e)
-        
 class graphicalInterface:
     
     appList = {
@@ -27,10 +13,10 @@ class graphicalInterface:
     }
     
     logos = {
-        "Netflix": "/home/pi2/logos/netflix.png", 
-        "Disney+" : "/home/pi2/logos/disney.png",
-        "Spotify": "/home/pi2/logos/spotify.png",
-        "Youtube": "/home/pi2/logos/youtube.png"
+        "Netflix": "/home/pi/FSE-ProyectoFinal/src/logos/netflix.png", 
+        "Disney+" : "/home/pi/FSE-ProyectoFinal/src/logos/disney.png",
+        "Spotify": "/home/pi/FSE-ProyectoFinal/src/logos/spotify.png",
+        "Youtube": "/home/pi/FSE-ProyectoFinal/src/logos/youtube.png"
     }
     
     mediaList = []
@@ -64,7 +50,7 @@ class graphicalInterface:
         
         btn = tk.Button(self.title_frame, text="Salir", font=("Arial", 30), width=15, height=2,
                             bg="gray20", fg="white", activebackground="blue",
-                            command=lambda c=self.salir_app: c())
+                            command=self.salir_app)
         btn.grid(row=0, column=2, padx=50,pady=5)
         self.buttons.append(btn)
         
@@ -76,8 +62,7 @@ class graphicalInterface:
                         font=("Arial", 16), fg="white", bg="black")
         self.streaming_label.pack(pady=20)
         
-        #Frame para botones de apps de streamin
-        
+        #Frame para botones de apps de streaming
         self.streamingApp_frame = tk.Frame(self.root, bg="black")
         self.streamingApp_frame.pack(pady=10)
         
@@ -98,10 +83,9 @@ class graphicalInterface:
         i=0
         for text, command in self.appButtonDictionary:
             img = tk.PhotoImage(file=self.logos[text])
-            
             self.images.append(img)
             btn = tk.Button(self.streamingApp_frame, image=img, bg="black", bd=0, relief="flat", highlightthickness=0,
-                            command=lambda c=command: c())
+                            command=command)
             btn.grid(row=0,column=i, pady=5, padx = 40)
             self.buttons.append(btn)
             i+=1
@@ -114,14 +98,13 @@ class graphicalInterface:
                         font=("Arial", 16), fg="white", bg="black")
         self.streaming_label.pack(pady=20)
         
-        #Frame para los archivos multimedia de medios extraibles
-        
+        #Frame para los archivos multimedia de medios extraíbles
         self.media_frame = tk.Frame(self.root, bg="black")
         self.media_frame.pack(pady=10)
         for text, command in self.extraButtons:
             btn = tk.Button(self.media_frame, text=text, font=("Arial", 24), width=25, height=2,
                             bg="gray20", fg="white", activebackground="blue",
-                            command=lambda c=command: c())
+                            command=command)
             btn.grid(row=1, column=i, pady=5)
             self.buttons.append(btn)
             i += 1
@@ -134,13 +117,22 @@ class graphicalInterface:
         self.root.bind("<Down>", self.mover_foco)
         self.root.bind("<Return>", self.mover_foco)
         
-        
+        # ===== Función para cerrar Chromium con tecla Menu =====
+        def manejar_menu(event=None):
+            try:
+                windows = subprocess.check_output(
+                    ["xdotool", "search", "--onlyvisible", "--class", "chromium"]
+                ).splitlines()
+                for w in windows:
+                    subprocess.run(["xdotool", "windowactivate", w, "key", "ctrl+shift+w"])
+            except Exception as e:
+                print("Error cerrando Chromium:", e)
 
-        
-        
-    def abrir_app(self,app):
+        self.root.bind("<Menu>", manejar_menu)
+        self.root.bind_all("<Menu>", manejar_menu)
+
+    def abrir_app(self, app):
         try:
-            # Abrir Chromium en pantalla completa con barra de título
             subprocess.Popen([
                 "chromium",
                 "--start-fullscreen",
@@ -152,8 +144,7 @@ class graphicalInterface:
         except Exception as e:
             print("Error al abrir Chromium:", e)
     
-
-    def abrir_vlc(self, event=None):
+    def abrir_vlc(self):
         try:
             subprocess.Popen(["vlc", "--fullscreen", "/home/pi/Videos/prueba.mp4"])
         except Exception as e:
@@ -161,7 +152,6 @@ class graphicalInterface:
 
     def salir_app(self, event=None):
         self.root.destroy()
-
 
     def mover_foco(self, event):
         if event.keysym == "Down":
@@ -173,7 +163,6 @@ class graphicalInterface:
         self.buttons[self.current_index].focus_set()
 
     def inicia_interfaz(self):        
-        # ===== Ejecutar la aplicación =====
         self.root.mainloop()
         
     def addMediaButtons(self):
@@ -185,7 +174,6 @@ class graphicalInterface:
             self.buttons.append(btn)
 
 
-
 def checkEvent():
     #Objeto para la interfaz gràfica
     global i
@@ -195,11 +183,9 @@ def checkEvent():
         i.mediaList.append("Fotos")
         i.mediaList.append("Videos")
         i.root.after(0, i.addMediaButtons)
-        
 
+# ===== Ejecutar interfaz =====
 i = graphicalInterface()
-# eventThread = threading.Thread(target=checkEvent)
-
-# eventThread.start()
-
+#eventThread = threading.Thread(target=checkEvent)
+#eventThread.start()
 i.inicia_interfaz()
