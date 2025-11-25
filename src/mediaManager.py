@@ -31,6 +31,8 @@ class mediaManager:
     
     self.mediaListPlayer.play()
     sleep(1)
+    #self.mediaPlayer.set_fullscreen(True)
+    sleep(1)
     if self.mediaType == "videos" or self.mediaType == "audio":
       while self.keepPlaying:
         self.mediaListPlayer.play()
@@ -41,10 +43,11 @@ class mediaManager:
       while self.keepPlaying:
         sleep(3)
         self.mediaListPlayer.next()
-
-  def stop():
-    self.keepPlaying = False
     self.mediaListPlayer.stop()
+
+  def stop(self):
+    self.keepPlaying = False
+    
   
   def pauseMedia():
     pass
