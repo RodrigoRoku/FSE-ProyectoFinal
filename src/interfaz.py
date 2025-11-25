@@ -118,18 +118,16 @@ class graphicalInterface:
         self.root.bind("<Return>", self.mover_foco)
         
         # ===== Función para cerrar Chromium con tecla Menu =====
-        def manejar_menu(event=None):
+        def cerrar_chromium(event=None):
             try:
-                windows = subprocess.check_output(
-                    ["xdotool", "search", "--onlyvisible", "--class", "chromium"]
-                ).splitlines()
-                for w in windows:
-                    subprocess.run(["xdotool", "windowactivate", w, "key", "ctrl+shift+w"])
+                subprocess.run(["pkill", "-f", "chromium"])
+                print("Chromium cerrado")
             except Exception as e:
                 print("Error cerrando Chromium:", e)
 
-        self.root.bind("<Menu>", manejar_menu)
-        self.root.bind_all("<Menu>", manejar_menu)
+        # Captura todas las teclas y filtra por keycode
+        self.root.bind("<Key>", lambda e: cerrar_chromium() if e.keycode == 139 else None)
+
 
     def abrir_app(self, app):
         try:
