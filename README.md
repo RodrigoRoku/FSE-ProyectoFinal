@@ -8,7 +8,7 @@ Proyecto final para la materia de fundamentos de sistemas embebidos. Centro mult
 
 ## Instalación:
 1. Clonar repositorio:  git clone https://github.com/RodrigoRoku/FSE-ProyectoFinal.git
-2. Ejecutar: sudo ./configure.sh o sudo bash configure.sh
+2. Ejecutar: sudo ./configure.sh o sudo bash /FSE-ProyectoFinal/config/configure.sh
 3. El sistema se reinicia y funciona automáticamente
 
 ## Estructura:
