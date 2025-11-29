@@ -54,6 +54,14 @@ fi
 #Instalacion de paquetes necesarios.
 apt -y install nodm pulseaudio vlc python3-vlc python3-pyudev python3-tk libwidevinecdm0 chromium-browser xorg
 
+# Instalacion y configuracion del bluetooth
+echo "→ Instalando paquetes Bluetooth"
+apt -y install pi-bluetooth bluez bluez-tools python3-dbus python3-evdev
+
+echo "→ Reiniciando Bluetooth en modo -C -E"
+systemctl stop bluetooth
+/usr/lib/bluetooth/bluetoothd -C -n -E &
+
 USER=multimedia
 
 #Creacion de directorios
