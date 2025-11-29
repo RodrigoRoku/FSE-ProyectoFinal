@@ -1,7 +1,7 @@
 # FSE-ProyectoFinal Centro Multimedia
 Proyecto final para la materia de fundamentos de sistemas embebidos. Centro multimedia en una Raspberry Pi. 
 
-**Autores:** Hernández Alejo Ximena Gizell
+**Autores:** Hernández Alejo Ximena Gizell &
              Tapia Navarro Rodrigo
 **Enlace al video de demostraciòn:** https://youtu.be/FZqiHrxtxT4
 
