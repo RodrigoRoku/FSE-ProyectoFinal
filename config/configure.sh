@@ -76,7 +76,7 @@ cd /home/${USER}
 cat > /home/${USER}/.xinitrc << EOF
 #!/bin/bash
 sleep 1
-python3 ${MULTIMEDIAPP_HOME}/interfaz.py
+python3 ${MULTIMEDIAPP_HOME}/interfaz2.py
 wait
 EOF
 
