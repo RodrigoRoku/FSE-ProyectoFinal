@@ -1,64 +1,51 @@
-import mediaManager
 import usbManager
+import interfaz2
 import threading
+from time import sleep
 
 
-def updateUi(mediaDictionary):
-  
-  #Desplegar el menu
-  d = []
-  i = 0
-  for k in sorted(mediaDictionary.keys()):
-    d.append(k)
-    print(f"{i}) Reproducir {k}")
-    i += 1
-  
-  ##Esto iria en otra funcion
-  selection = int(input("Selecciona una opcion: "))
-
-  mediaHandler = mediaManager.mediaManager(mediaDictionary.get(d[selection]), d[selection])
-  mediaHandler.playMedia()
-  
-
-def main():
-  usbHandler = usbManager.usbManager()
-  
-  
-  usbDetectorThread = threading.Thread(target=usbHandler.monitorDevices)
-  usbDetectorThread.start()
-  
-  #Revisar periodicamente si se ha encontrado algùn medio
-  
+def checkMedia():
+  global usbHandler
+  global ui
   isMediaLoaded = False
-  mediaType = {'fotos': False, 'videos':False, 'audio':False}
-  
-  while True:
+  while ui.isAppRunning:
     if usbHandler.isMediaMounted and not isMediaLoaded:
-      if len(usbHandler.foundMedia.get('fotos')) > 0:
-        mediaType['fotos'] = True
-        
-      if len(usbHandler.foundMedia.get('videos')) > 0:
-        mediaType['videos'] = True
-        
-        
-      if len(usbHandler.foundMedia.get('audio')) > 0:
-        mediaType['audio'] = True
+      #Revisa los medios detectados y cargalos en la lista de medios de UI
+      if  len(usbHandler.foundMedia.get("fotos")) > 0:
+        ui.media_items.append("fotos")
+        ui.mediaDir["fotos"] = usbHandler.foundMedia.get("fotos")[:]
       
-      if mediaType['fotos'] or mediaType['videos'] or mediaType['audio']:
-        updateUi(usbHandler.foundMedia)
-      
+      if  len(usbHandler.foundMedia.get("videos")) > 0:
+        ui.media_items.append("videos")
+        ui.mediaDir["videos"] = usbHandler.foundMedia.get("videos")[:]
+        
+      if  len(usbHandler.foundMedia.get("audio")) > 0:
+        ui.media_items.append("audio")
+        ui.mediaDir["audio"] = usbHandler.foundMedia.get("audio")[:]
+      print(ui.mediaDir)
+      print(ui.media_items)
+      ui.isUsbMounted = True
       isMediaLoaded = True
     
-    if not usbHandler.isMediaMounted:
-      mediaType = {'fotos': False, 'videos':False, 'audio':False}
+    elif not usbHandler.isMediaMounted:
+      #Limpia la lista de elementos (y borra los botones?)
+      ui.isUsbMounted = False
+      ui.media_items.clear()
+      ui.mediaDir.clear()
       isMediaLoaded = False
+
+  usbHandler.continueLoop = False
       
-main()
-        
-      
- 
-      
- 
-  
-  
-  
+
+
+usbHandler = usbManager.usbManager()
+ui = interfaz2.graphicalInterface()
+
+usbThread = threading.Thread(target=usbHandler.monitorDevices, daemon=True)
+eventThread = threading.Thread(target=checkMedia)
+
+usbThread.start()
+eventThread.start()
+
+ui.run()
+

@@ -12,7 +12,7 @@ import pyudev
 import subprocess as sp
 
 class usbManager:
-  imageFormats = ['gif', 'jpeg', 'png', 'jpg']
+  imageFormats = ['gif', 'jpeg', 'png', 'jpg', "avif"]
   videoFormats = ['mp4', 'avi', 'wmv']
   audioFormats = ['wav', 'flac', 'mp3']
   
@@ -23,7 +23,7 @@ class usbManager:
     self.foundMedia = {"fotos" : [], "videos": [], "audio": []}
     self.mediaLock = False
     self.isMediaMounted = False
-  
+    self.continueLoop = True
   def autoMount(self, path):
     args = ["udisksctl", "mount", "-b", path]
     sp.run(args)
@@ -53,7 +53,7 @@ class usbManager:
         
     
   def monitorDevices(self):
-    while True:
+    while self.continueLoop:
       action, device = self.monitor.receive_device()
       if action == "add":
         self.autoMount("/dev/" + device.sys_name)

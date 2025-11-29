@@ -1,5 +1,6 @@
 import tkinter as tk
 import subprocess
+import mediaManager
 from time import sleep
 import threading
 
@@ -33,7 +34,7 @@ class graphicalInterface:
         "Youtube": "/home/pi2/logos/youtube.png"
     }
     
-    mediaList = []
+    mediaDir = {}
 
     def __init__(self):
         # ===== Configuración de la ventana =====
@@ -62,11 +63,10 @@ class graphicalInterface:
                         font=("Arial", 16), fg="white", bg="gray20")
         self.label.grid(row=0, column=1,padx=50,  pady=20)
         
-        btn = tk.Button(self.title_frame, text="Salir", font=("Arial", 30), width=15, height=2,
+        exit_btn = tk.Button(self.title_frame, text="Salir", font=("Arial", 30), width=15, height=2,
                             bg="gray20", fg="white", activebackground="blue",
                             command=lambda c=self.salir_app: c())
-        btn.grid(row=0, column=2, padx=50,pady=5)
-        self.buttons.append(btn)
+        exit_btn.grid(row=0, column=2, padx=50,pady=5)
         
         #Frame para espaciar elementos
         self.spacer1 = tk.Frame(self.root, height=150, bg="black")
@@ -89,9 +89,10 @@ class graphicalInterface:
             ("Youtube", lambda: self.abrir_app("youtube")),
         ]
         
-        self.extraButtons = {
-            ("Medios Extraíbles", self.abrir_vlc),
-        }
+        # self.extraButtons = {
+        #     ("fotos", lambda: self.abrir_vlc("fotos")),
+        #     ("videos", lambda: self.abrir_vlc("videos")),
+        # }
         
         self.images = []
         # ===== Crear botones y vincular clic derecho =====
@@ -118,13 +119,14 @@ class graphicalInterface:
         
         self.media_frame = tk.Frame(self.root, bg="black")
         self.media_frame.pack(pady=10)
-        for text, command in self.extraButtons:
-            btn = tk.Button(self.media_frame, text=text, font=("Arial", 24), width=25, height=2,
-                            bg="gray20", fg="white", activebackground="blue",
-                            command=lambda c=command: c())
-            btn.grid(row=1, column=i, pady=5)
-            self.buttons.append(btn)
-            i += 1
+        i=0
+        # for text, command in self.extraButtons:
+        #     btn = tk.Button(self.media_frame, text=text, font=("Arial", 24), width=25, height=2,
+        #                     bg="gray20", fg="white", activebackground="blue",
+        #                     command=lambda c=command: c())
+        #     btn.grid(row=1, column=i, pady=5)
+        #     self.buttons.append(btn)
+        #     i += 1
 
         # ===== Manejo de navegación con teclado =====
         self.current_index = 0
@@ -153,9 +155,15 @@ class graphicalInterface:
             print("Error al abrir Chromium:", e)
     
 
-    def abrir_vlc(self, event=None):
+    def abrir_vlc(self, mediaType):
         try:
-            subprocess.Popen(["vlc", "--fullscreen", "/home/pi/Videos/prueba.mp4"])
+            # m = mediaManager.mediaManager(self.mediaDir[mediaType], mediaType )
+            # mediaThread = threading.Thread(target=m.playMedia)
+            # mediaThread.start()
+            
+            # del m
+            print(f"Abriendo las {mediaType}")
+            print(self.mediaDir)
         except Exception as e:
             print("Error al abrir VLC:", e)
 
@@ -177,29 +185,22 @@ class graphicalInterface:
         self.root.mainloop()
         
     def addMediaButtons(self):
-        for item in self.mediaList:
-            btn = tk.Button(self.root, text=item, font=("Arial", 24), width=25, height=2,
+        i = 0
+        for k in self.mediaDir.keys():
+            btn = tk.Button(self.media_frame, text=k, font=("Arial", 24), width=15, height=2,
                                 bg="gray20", fg="white", activebackground="blue",
-                                command=lambda c=self.abrir_app: c("netflix"))
-            btn.pack(pady=10)
+                                command=lambda c=self.abrir_vlc: c(k))
+            print(k)
+            btn.grid(row=0, column=i, pady=10, padx=30)
             self.buttons.append(btn)
-
-
-
-def checkEvent():
-    #Objeto para la interfaz gràfica
-    global i
-    e = True
-    sleep(5)
-    if e :
-        i.mediaList.append("Fotos")
-        i.mediaList.append("Videos")
-        i.root.after(0, i.addMediaButtons)
+            i += 1
+    
+    def deleteMediaButtons(self):
+        index = -1
         
+        for i in self.mediaDir:
+            self.buttons[index].destroy()
+            index -= 1
+    
+            
 
-i = graphicalInterface()
-# eventThread = threading.Thread(target=checkEvent)
-
-# eventThread.start()
-
-i.inicia_interfaz()
